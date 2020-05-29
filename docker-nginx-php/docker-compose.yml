@@ -1,0 +1,49 @@
+version: '2.2'
+services:
+ nginx:
+     build: ./nginx  #指定build Dockerfile生成镜像
+     restart: always
+     #image: lemon1989/nginx:latest
+     ports:              
+         - "80:80"
+         - "8004:8004"
+     depends_on:     #依赖关系，需要先运行php
+         - "phpfpm"
+     volumes:
+         - "./nginx/nginx.conf:/etc/nginx/nginx.conf"
+         - "./nginx/conf.d:/etc/nginx/conf.d"
+         - "./nginx/logs:/var/log/nginx"
+         - "E:/html:/usr/share/nginx/html"
+     networks:
+         - d_net
+     container_name: "compose-nginx"  #容器名称
+ phpfpm:
+     build: ./phpfpm  #指定build Dockerfile生成镜像
+     restart: always
+     #image: lemon1989/phpfpm:latest
+     ports:
+         - "9000:9000"
+     depends_on:     #依赖关系，需要先运行php
+         - "mysql"    
+     volumes:
+         - "E:/html:/usr/share/nginx/html"
+     networks:
+         - d_net 
+     container_name: "compose-php"
+ mysql:
+     build: ./mysql  #指定build Dockerfile生成镜像
+     restart: always
+     #image: lemon1989/mysql:latest
+     ports:
+         - "3306:3306"
+     volumes:
+         - "./mysql/custom.cnf:/etc/mysql/conf.d/custom.cnf"
+         - "./mysql/init:/docker-entrypoint-initdb.d"      
+     environment:
+         - MYSQL_ROOT_PASSWORD=abc123
+     networks:
+         - d_net
+     container_name: "compose-mysql"
+networks:            
+ d_net:
+     driver: bridge
